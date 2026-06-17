@@ -12,9 +12,15 @@ interface PartCardProps {
   part: LifePart;
   onClick?: () => void;
   showLocation?: boolean;
+  highlighted?: boolean;
 }
 
-const PartCard: React.FC<PartCardProps> = ({ part, onClick, showLocation = true }) => {
+const PartCard: React.FC<PartCardProps> = ({
+  part,
+  onClick,
+  showLocation = true,
+  highlighted = false
+}) => {
   const handleClick = () => {
     if (onClick) {
       onClick();
@@ -24,7 +30,10 @@ const PartCard: React.FC<PartCardProps> = ({ part, onClick, showLocation = true 
   };
 
   return (
-    <View className={styles.card} onClick={handleClick}>
+    <View
+      className={classnames(styles.card, highlighted && styles.highlighted)}
+      onClick={handleClick}
+    >
       <View className={styles.header}>
         <View className={styles.titleRow}>
           <Text className={styles.partName}>{part.partName || part.partNumber}</Text>

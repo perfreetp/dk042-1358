@@ -6,9 +6,17 @@
   padding: $spacing-lg;
   box-shadow: $shadow-card;
   margin-bottom: $spacing-md;
+  border: 2rpx solid transparent;
+  transition: box-shadow $transition-base, border-color $transition-base;
 
   &:active {
     opacity: 0.9;
+  }
+
+  &.highlighted {
+    border-color: #F59E0B;
+    box-shadow: 0 4rpx 20rpx rgba(245, 158, 11, 0.18);
+    background-color: #FFFBEB;
   }
 }
 

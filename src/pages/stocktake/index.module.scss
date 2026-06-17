@@ -1,0 +1,457 @@
+@use '@/styles/variables.scss' as *;
+
+.container {
+  min-height: 100vh;
+  background-color: $color-bg-page;
+  padding-bottom: 180rpx;
+}
+
+.setupHeader {
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-dark 100%);
+  padding: 48rpx $page-padding 64rpx;
+  color: $color-text-white;
+}
+
+.setupTitle {
+  font-size: $font-size-xxl;
+  font-weight: $font-weight-bold;
+  margin-bottom: 8rpx;
+}
+
+.setupDesc {
+  font-size: $font-size-sm;
+  opacity: 0.85;
+}
+
+.setupForm {
+  padding: 0 $page-padding;
+  margin-top: -32rpx;
+}
+
+.setupCard {
+  background-color: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  box-shadow: $shadow-card;
+}
+
+.setupRow {
+  margin-bottom: $spacing-md;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.setupLabel {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  margin-bottom: $spacing-xs;
+}
+
+.setupWrapper {
+  background-color: $color-bg-page;
+  border-radius: $radius-md;
+  padding: 0 $spacing-lg;
+  height: $button-height-md;
+  display: flex;
+  align-items: center;
+}
+
+.setupInput {
+  flex: 1;
+  font-size: $font-size-md;
+  color: $color-text-primary;
+  height: 100%;
+}
+
+.placeholder {
+  color: $color-text-disabled;
+}
+
+.quickScopes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+  margin-top: $spacing-xs;
+}
+
+.scopeTag {
+  padding: 8rpx 20rpx;
+  background-color: $color-bg-tag-primary;
+  color: $color-primary;
+  border-radius: $radius-button;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+
+  &:active {
+    opacity: 0.8;
+  }
+}
+
+.startBtn {
+  @include button-reset;
+  width: 100%;
+  height: $button-height-lg;
+  border-radius: $radius-button;
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-dark 100%);
+  color: $color-text-white;
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  margin-top: $spacing-lg;
+
+  &:disabled {
+    opacity: 0.5;
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.98);
+    opacity: 0.9;
+  }
+}
+
+.progressHeader {
+  background-color: $color-primary;
+  padding: $spacing-lg $page-padding;
+  color: $color-text-white;
+}
+
+.progressTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  margin-bottom: $spacing-sm;
+}
+
+.progressStats {
+  display: flex;
+  gap: $spacing-md;
+}
+
+.progressStat {
+  flex: 1;
+  background-color: rgba(255, 255, 255, 0.15);
+  border-radius: $radius-md;
+  padding: $spacing-sm $spacing-md;
+}
+
+.progressValue {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  line-height: 1.2;
+}
+
+.progressLabel {
+  font-size: $font-size-xs;
+  opacity: 0.85;
+  margin-top: 4rpx;
+}
+
+.progressBar {
+  height: 8rpx;
+  background-color: rgba(255, 255, 255, 0.25);
+  border-radius: 4rpx;
+  margin-top: $spacing-md;
+  overflow: hidden;
+}
+
+.progressInner {
+  height: 100%;
+  background-color: $color-text-white;
+  border-radius: 4rpx;
+  transition: width $transition-base;
+}
+
+.scanSection {
+  padding: $spacing-md $page-padding;
+}
+
+.scanCard {
+  background-color: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  box-shadow: $shadow-card;
+}
+
+.scanPrimaryBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $spacing-sm;
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-dark 100%);
+  padding: $spacing-lg 0;
+  border-radius: $radius-lg;
+  color: $color-text-white;
+
+  &:active {
+    opacity: 0.92;
+  }
+}
+
+.scanIcon {
+  font-size: 44rpx;
+  font-weight: $font-weight-bold;
+}
+
+.scanText {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+}
+
+.scanSub {
+  font-size: $font-size-xs;
+  opacity: 0.85;
+  text-align: center;
+  margin-top: $spacing-sm;
+  color: $color-text-tertiary;
+}
+
+.manualRow {
+  display: flex;
+  gap: $spacing-sm;
+  margin-top: $spacing-md;
+}
+
+.manualInput {
+  flex: 1;
+  background-color: $color-bg-page;
+  border-radius: $radius-md;
+  padding: 0 $spacing-md;
+  height: $button-height-md;
+  display: flex;
+  align-items: center;
+}
+
+.manualInputField {
+  flex: 1;
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+  height: 100%;
+}
+
+.manualBtn {
+  @include button-reset;
+  padding: 0 $spacing-lg;
+  height: $button-height-md;
+  border-radius: $radius-md;
+  background-color: $color-bg-tag-primary;
+  color: $color-primary;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+}
+
+.tabsRow {
+  display: flex;
+  background-color: $color-bg-card;
+  border-radius: $radius-md;
+  padding: 6rpx;
+  margin-bottom: $spacing-md;
+  box-shadow: $shadow-card;
+}
+
+.tabItem {
+  flex: 1;
+  padding: $spacing-sm 0;
+  text-align: center;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  border-radius: $radius-sm;
+  transition: all $transition-fast;
+
+  &.active {
+    background-color: $color-primary;
+    color: $color-text-white;
+    font-weight: $font-weight-medium;
+  }
+}
+
+.listSection {
+  padding: 0 $page-padding;
+}
+
+.itemList {
+  background-color: $color-bg-card;
+  border-radius: $radius-lg;
+  overflow: hidden;
+  box-shadow: $shadow-card;
+}
+
+.stItem {
+  display: flex;
+  align-items: center;
+  padding: $spacing-md $spacing-lg;
+  border-bottom: 1rpx solid $color-divider;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.stCheck {
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 50%;
+  border: 2rpx solid $color-border;
+  margin-right: $spacing-md;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  &.scanned {
+    background-color: $color-success;
+    border-color: $color-success;
+  }
+}
+
+.stCheckIcon {
+  color: $color-text-white;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-bold;
+}
+
+.stInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.stPartName {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  @include text-ellipsis;
+  margin-bottom: 4rpx;
+}
+
+.stMeta {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.stLife {
+  font-size: $font-size-xs;
+  color: $color-primary;
+  font-weight: $font-weight-medium;
+  margin-top: 4rpx;
+}
+
+.stScanTime {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  margin-left: $spacing-sm;
+  flex-shrink: 0;
+}
+
+.stRemark {
+  display: inline-block;
+  margin-left: $spacing-xs;
+  padding: 2rpx 10rpx;
+  background-color: $color-bg-tag-warning;
+  color: $color-warning;
+  font-size: $font-size-xs;
+  border-radius: $radius-xs;
+}
+
+.bottomBar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: $color-bg-card;
+  padding: $spacing-md $page-padding;
+  padding-bottom: calc(#{$spacing-md} + env(safe-area-inset-bottom));
+  box-shadow: 0 -4rpx 16rpx rgba(0, 0, 0, 0.06);
+  display: flex;
+  gap: $spacing-md;
+}
+
+.btnSecondary {
+  @include button-reset;
+  flex: 1;
+  height: $button-height-lg;
+  border-radius: $radius-button;
+  background-color: $color-bg-page;
+  color: $color-text-secondary;
+  font-size: $font-size-md;
+  font-weight: $font-weight-medium;
+}
+
+.btnPrimary {
+  @include button-reset;
+  flex: 2;
+  height: $button-height-lg;
+  border-radius: $radius-button;
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  color: $color-text-white;
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+
+  &:disabled {
+    opacity: 0.5;
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.98);
+    opacity: 0.9;
+  }
+}
+
+.historySection {
+  padding: $spacing-md $page-padding;
+}
+
+.historyTitle {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $color-text-secondary;
+  margin-bottom: $spacing-md;
+}
+
+.historyItem {
+  background-color: $color-bg-card;
+  border-radius: $radius-md;
+  padding: $spacing-md $spacing-lg;
+  margin-bottom: $spacing-sm;
+  box-shadow: $shadow-card;
+
+  &:active {
+    background-color: $color-bg-hover;
+  }
+}
+
+.historyHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-xs;
+}
+
+.historyName {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  @include text-ellipsis;
+  flex: 1;
+  margin-right: $spacing-sm;
+}
+
+.historyStatus {
+  padding: 4rpx 12rpx;
+  border-radius: $radius-xs;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+
+  &.progress {
+    background-color: $color-bg-tag-primary;
+    color: $color-primary;
+  }
+
+  &.done {
+    background-color: $color-bg-tag-success;
+    color: $color-success;
+  }
+}
+
+.historyMeta {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}

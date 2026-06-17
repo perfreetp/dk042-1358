@@ -106,3 +106,31 @@ export const RETURN_REASON_LABEL: Record<ReturnReason, string> = {
   wrong_delivery: '错发退回',
   for_repair: '待送修'
 };
+
+export interface StocktakeRecord {
+  id: string;
+  title: string;
+  locationScope?: string;
+  totalCount: number;
+  scannedCount: number;
+  missingCount: number;
+  status: 'in_progress' | 'completed';
+  operator: string;
+  createTime: string;
+  finishTime?: string;
+  remark?: string;
+}
+
+export interface StocktakeItem {
+  id: string;
+  stocktakeId: string;
+  partId: string;
+  partNumber: string;
+  serialNumber: string;
+  batchNumber: string;
+  partName?: string;
+  location?: string;
+  scanned: boolean;
+  scanTime?: string;
+  remark?: string;
+}

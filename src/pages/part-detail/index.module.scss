@@ -1,0 +1,331 @@
+@use '@/styles/variables.scss' as *;
+
+.container {
+  min-height: 100vh;
+  background-color: $color-bg-page;
+  padding-bottom: $spacing-xl;
+}
+
+.header {
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-dark 100%);
+  padding: 48rpx $page-padding 72rpx;
+  color: $color-text-white;
+}
+
+.breadcrumb {
+  font-size: $font-size-xs;
+  opacity: 0.75;
+  margin-bottom: $spacing-sm;
+}
+
+.headerTitle {
+  font-size: $font-size-xxl;
+  font-weight: $font-weight-bold;
+  margin-bottom: 8rpx;
+}
+
+.headerSub {
+  font-size: $font-size-sm;
+  opacity: 0.85;
+  @include text-ellipsis;
+}
+
+.infoCard {
+  margin: -40rpx $page-padding 0;
+  background-color: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  box-shadow: $shadow-card;
+}
+
+.statusRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-md;
+}
+
+.statusLeft {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.infoGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-md;
+}
+
+.infoItem {
+  width: calc(50% - #{$spacing-sm});
+}
+
+.infoLabel {
+  display: block;
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  margin-bottom: 6rpx;
+}
+
+.infoValue {
+  display: block;
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+  font-weight: $font-weight-medium;
+  word-break: break-all;
+
+  &.life {
+    color: $color-primary;
+    font-weight: $font-weight-semibold;
+    font-size: $font-size-md;
+  }
+}
+
+.sectionTitle {
+  margin: $spacing-lg $page-padding $spacing-md;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sectionLeft {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+}
+
+.sectionIcon {
+  width: 40rpx;
+  height: 40rpx;
+  background-color: $color-bg-tag-primary;
+  color: $color-primary;
+  border-radius: $radius-sm;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: $font-size-sm;
+}
+
+.sectionName {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.sectionCount {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+}
+
+.timeline {
+  margin: 0 $page-padding;
+}
+
+.tlItem {
+  display: flex;
+  gap: $spacing-md;
+  position: relative;
+  padding-bottom: $spacing-lg;
+}
+
+.tlDots {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  width: 56rpx;
+  flex-shrink: 0;
+}
+
+.tlDot {
+  width: 32rpx;
+  height: 32rpx;
+  border-radius: 50%;
+  background-color: $color-primary;
+  border: 4rpx solid $color-bg-card;
+  box-shadow: 0 0 0 2rpx $color-primary;
+  z-index: 2;
+  margin-top: 6rpx;
+
+  &.inbound {
+    background-color: $color-success;
+    box-shadow: 0 0 0 2rpx $color-success;
+  }
+
+  &.outbound {
+    background-color: #3B82F6;
+    box-shadow: 0 0 0 2rpx #3B82F6;
+  }
+
+  &.return {
+    background-color: $color-warning;
+    box-shadow: 0 0 0 2rpx $color-warning;
+  }
+
+  &.exception {
+    background-color: $color-danger;
+    box-shadow: 0 0 0 2rpx $color-danger;
+  }
+
+  &.stocktake {
+    background-color: #8B5CF6;
+    box-shadow: 0 0 0 2rpx #8B5CF6;
+  }
+
+  &.create {
+    background-color: #0EA5E9;
+    box-shadow: 0 0 0 2rpx #0EA5E9;
+  }
+}
+
+.tlLine {
+  flex: 1;
+  width: 2rpx;
+  background-color: $color-divider;
+  margin-top: 12rpx;
+}
+
+.tlContent {
+  flex: 1;
+  min-width: 0;
+  background-color: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-md $spacing-lg;
+  box-shadow: $shadow-card;
+  position: relative;
+}
+
+.tlTopRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-xs;
+  gap: $spacing-sm;
+}
+
+.tlTitle {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  flex: 1;
+  @include text-ellipsis;
+}
+
+.tlBadge {
+  padding: 4rpx 12rpx;
+  border-radius: $radius-xs;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+  flex-shrink: 0;
+
+  &.kind-inbound {
+    background-color: $color-bg-tag-success;
+    color: $color-success;
+  }
+  &.kind-outbound {
+    background-color: $color-bg-tag-primary;
+    color: $color-primary;
+  }
+  &.kind-return {
+    background-color: $color-bg-tag-warning;
+    color: $color-warning;
+  }
+  &.kind-exception {
+    background-color: $color-bg-tag-danger;
+    color: $color-danger;
+  }
+  &.kind-stocktake {
+    background-color: #EDE9FE;
+    color: #7C3AED;
+  }
+  &.kind-create {
+    background-color: #E0F2FE;
+    color: #0369A1;
+  }
+}
+
+.tlTime {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  margin-bottom: 4rpx;
+}
+
+.tlDesc {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  line-height: 1.55;
+  margin-bottom: $spacing-xs;
+}
+
+.tlMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+}
+
+.tlMetaItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 4rpx;
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.tlMetaValue {
+  color: $color-text-secondary;
+  font-weight: $font-weight-medium;
+}
+
+.emptyTimeline {
+  margin: 0 $page-padding;
+  background-color: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: 120rpx $spacing-xl;
+  text-align: center;
+  box-shadow: $shadow-card;
+}
+
+.emptyIcon {
+  font-size: 80rpx;
+  opacity: 0.3;
+  margin-bottom: $spacing-md;
+  display: block;
+}
+
+.emptyTitle {
+  font-size: $font-size-md;
+  color: $color-text-secondary;
+  margin-bottom: $spacing-xs;
+}
+
+.emptyDesc {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+}
+
+.tabs {
+  display: flex;
+  margin: $spacing-md $page-padding;
+  background-color: $color-bg-card;
+  border-radius: $radius-md;
+  padding: 6rpx;
+  overflow-x: auto;
+  gap: 4rpx;
+}
+
+.tab {
+  flex-shrink: 0;
+  padding: $spacing-sm $spacing-lg;
+  border-radius: $radius-sm;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  white-space: nowrap;
+  transition: all $transition-fast;
+
+  &.active {
+    background-color: $color-primary;
+    color: $color-text-white;
+    font-weight: $font-weight-medium;
+  }
+}

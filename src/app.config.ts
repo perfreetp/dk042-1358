@@ -5,7 +5,9 @@ export default defineAppConfig({
     'pages/exception/index',
     'pages/inbound/index',
     'pages/outbound/index',
-    'pages/return/index'
+    'pages/return/index',
+    'pages/stocktake/index',
+    'pages/part-detail/index'
   ],
   window: {
     backgroundTextStyle: 'light',

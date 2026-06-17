@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { View, Text, ScrollView, Input } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import classnames from 'classnames';
@@ -14,31 +14,81 @@ type FilterType = 'all' | PartStatus;
 const QueryPage: React.FC = () => {
   const [keyword, setKeyword] = useState('');
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
-  const { parts } = usePartStore();
+  const scrollRef = useRef<any>(null);
+  const {
+    parts,
+    highlightedPartId,
+    setHighlightedPartId,
+    clearHighlightedPartId,
+    stocktakeRecords
+  } = usePartStore();
+
+  const highlightedPart = useMemo(() => {
+    if (!highlightedPartId) return null;
+    return parts.find((p) => p.id === highlightedPartId) || null;
+  }, [parts, highlightedPartId]);
 
   const filteredParts = useMemo(() => {
-    return parts.filter((part) => {
+    const inStock = parts.filter((p) => p.status !== 'outbound');
+    return inStock.filter((part) => {
       const matchesKeyword = matchesSearch(part, keyword);
       const matchesFilter = activeFilter === 'all' ? true : part.status === activeFilter;
       return matchesKeyword && matchesFilter;
     });
   }, [parts, keyword, activeFilter]);
 
+  useEffect(() => {
+    if (highlightedPartId) {
+      setTimeout(() => {
+        const el = Taro.createSelectorQuery().select('#part-card-' + highlightedPartId);
+        el &&
+          el.boundingClientRect().exec((res: any[]) => {
+            if (res && res[0]) {
+              const top = res[0].top - 160;
+              Taro.pageScrollTo &&
+                Taro.pageScrollTo({ scrollTop: top, duration: 400 });
+            }
+          });
+      }, 300);
+    }
+  }, [highlightedPartId]);
+
   const handleClear = () => {
     setKeyword('');
   };
 
   const handlePartClick = (partId: string) => {
-    const part = parts.find((p) => p.id === partId);
-    if (part) {
-      Taro.showModal({
-        title: part.partName || part.partNumber,
-        content: `件号: ${part.partNumber}\n序号: ${part.serialNumber}\n剩余寿命: ${part.remainingLife}\n状态: ${STATUS_LABEL[part.status]}\n${part.statusRemark || ''}`,
-        showCancel: false,
-        confirmText: '确定'
-      });
-    }
+    Taro.navigateTo({
+      url: `/pages/part-detail/index?partId=${partId}`
+    });
   };
+
+  const handleGoStocktake = () => {
+    Taro.navigateTo({ url: '/pages/stocktake/index' });
+  };
+
+  const handleGoHistory = () => {
+    Taro.navigateTo({ url: '/pages/stocktake/index?tab=history' });
+  };
+
+  const handleLocateHighlighted = () => {
+    if (!highlightedPartId) return;
+    const el = Taro.createSelectorQuery().select('#part-card-' + highlightedPartId);
+    el &&
+      el.boundingClientRect().exec((res: any[]) => {
+        if (res && res[0]) {
+          const top = res[0].top - 160;
+          Taro.pageScrollTo && Taro.pageScrollTo({ scrollTop: top, duration: 400 });
+        } else {
+          Taro.showToast({ title: '请先切换到全部tab', icon: 'none' });
+        }
+      });
+  };
+
+  const inProgressStocktake = useMemo(
+    () => stocktakeRecords.find((r) => r.status === 'in_progress'),
+    [stocktakeRecords]
+  );
 
   const filters: { key: FilterType; label: string }[] = [
     { key: 'all', label: '全部' },
@@ -79,9 +129,53 @@ const QueryPage: React.FC = () => {
         </View>
       </View>
 
-      <ScrollView className={styles.resultsSection} scrollY>
+      <View className={styles.toolsRow}>
+        <View className={styles.toolCard} onClick={handleGoStocktake}>
+          <View className={styles.toolIcon}>
+            <Text>📋</Text>
+          </View>
+          <View className={styles.toolText}>
+            <Text className={styles.toolTitle}>库存盘点</Text>
+            <Text className={styles.toolDesc}>
+              {inProgressStocktake
+                ? `进行中：${inProgressStocktake.scannedCount}/${inProgressStocktake.totalCount}`
+                : '扫码逐件核对，生成差异报告'}
+            </Text>
+          </View>
+        </View>
+        <View className={classnames(styles.toolCard, styles.secondary)} onClick={handleGoHistory}>
+          <View className={styles.toolIcon}>
+            <Text>📒</Text>
+          </View>
+          <View className={styles.toolText}>
+            <Text className={styles.toolTitle}>盘点历史</Text>
+            <Text className={styles.toolDesc}>
+              {stocktakeRecords.length} 次记录
+            </Text>
+          </View>
+        </View>
+      </View>
+
+      {highlightedPart && (
+        <View className={styles.highlightBanner} onClick={handleLocateHighlighted}>
+          <View className={styles.highlightText}>
+            <Text className={styles.highlightTitle}>✦ 刚退回的航材已定位</Text>
+            <Text className={styles.highlightDesc}>
+              {highlightedPart.partName || highlightedPart.partNumber} · {highlightedPart.serialNumber}
+            </Text>
+          </View>
+          <View className={styles.highlightClear} onClick={(e) => {
+            e.stopPropagation();
+            clearHighlightedPartId();
+          }}>
+            <Text>关闭</Text>
+          </View>
+        </View>
+      )}
+
+      <ScrollView ref={scrollRef} className={styles.resultsSection} scrollY>
         <View className={styles.resultsHeader}>
-          <Text className={styles.resultsTitle}>查询结果</Text>
+          <Text className={styles.resultsTitle}>在库航材</Text>
           <Text className={styles.resultsCount}>{filteredParts.length} 件</Text>
         </View>
 
@@ -98,11 +192,13 @@ const QueryPage: React.FC = () => {
         ) : (
           <View className={styles.partList}>
             {filteredParts.map((part) => (
-              <PartCard
-                key={part.id}
-                part={part}
-                onClick={() => handlePartClick(part.id)}
-              />
+              <View key={part.id} id={`part-card-${part.id}`}>
+                <PartCard
+                  part={part}
+                  onClick={() => handlePartClick(part.id)}
+                  highlighted={part.id === highlightedPartId}
+                />
+              </View>
             ))}
           </View>
         )}

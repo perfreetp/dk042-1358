@@ -17,7 +17,7 @@ const reasonOptions: { key: ReturnReason; desc: string }[] = [
 ];
 
 const ReturnPage: React.FC = () => {
-  const { outboundRecords, recordReturn } = usePartStore();
+  const { outboundRecords, recordReturn, setHighlightedPartId } = usePartStore();
 
   const [searchKeyword, setSearchKeyword] = useState('');
   const [selectedOutboundId, setSelectedOutboundId] = useState<string | null>(null);
@@ -83,23 +83,35 @@ const ReturnPage: React.FC = () => {
     if (!selectedOutbound || !selectedReason) return;
 
     try {
-      const success = recordReturn({
+      const result = recordReturn({
         outboundRecordId: selectedOutbound.id,
         reason: selectedReason,
         remark: remark.trim() || undefined,
         operator: '当前收发员'
       });
 
-      if (success) {
-        console.log('[Return] 退库成功');
+      if (result.success) {
+        console.log('[Return] 退库成功, returnedPartId=', result.returnedPartId);
+        if (result.returnedPartId) {
+          setHighlightedPartId(result.returnedPartId);
+        }
         Taro.showToast({
           title: '退库成功',
           icon: 'success',
-          duration: 1500
+          duration: 1200
         });
         setTimeout(() => {
-          Taro.navigateBack();
-        }, 1500);
+          Taro.switchTab({
+            url: '/pages/query/index',
+            success: () => {
+              console.log('[Return] 已跳转到查询页');
+            },
+            fail: (err) => {
+              console.warn('[Return] switchTab 失败，尝试 navigateBack:', err);
+              Taro.navigateBack({ delta: 1 });
+            }
+          });
+        }, 1200);
       } else {
         Taro.showToast({ title: '该出库记录不可退库', icon: 'none' });
       }

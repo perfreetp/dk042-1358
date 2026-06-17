@@ -61,6 +61,12 @@ const ExceptionPage: React.FC = () => {
     });
   };
 
+  const handleGoDetail = (record: ExceptionRecord) => {
+    Taro.navigateTo({
+      url: `/pages/part-detail/index?partNumber=${encodeURIComponent(record.partNumber)}&serialNumber=${encodeURIComponent(record.serialNumber)}`
+    });
+  };
+
   return (
     <View className={styles.container}>
       <View className={styles.header}>
@@ -123,25 +129,35 @@ const ExceptionPage: React.FC = () => {
                   >
                     <Text>{getLevelLabel(record.level)}</Text>
                   </View>
-                  {record.handled && (
+                  {record.handled ? (
                     <View className={styles.handledBadge}>
                       <Text>已处理</Text>
                     </View>
+                  ) : (
+                    <View
+                      className={styles.handleBtn}
+                      onClick={() => handleProcess(record)}
+                    >
+                      <Text>立即处理</Text>
+                    </View>
                   )}
                 </View>
-                <Text className={styles.exceptionPart}>
-                  {record.partName || record.partNumber} · {getTypeLabel(record.type)}
-                </Text>
-                <Text className={styles.exceptionDesc}>{record.description}</Text>
+                <View onClick={() => handleGoDetail(record)}>
+                  <Text className={styles.exceptionPart}>
+                    {record.partName || record.partNumber} · {getTypeLabel(record.type)}
+                  </Text>
+                  <Text className={styles.exceptionDesc}>{record.description}</Text>
+                </View>
                 <View className={styles.exceptionMeta}>
                   <Text className={styles.exceptionTime}>
                     {formatDateTime(record.createTime)}
                   </Text>
-                  {!record.handled && (
-                    <View className={styles.handleBtn} onClick={() => handleProcess(record)}>
-                      <Text>立即处理</Text>
-                    </View>
-                  )}
+                  <View
+                    className={styles.handleBtn}
+                    onClick={() => handleGoDetail(record)}
+                  >
+                    <Text>查看履历 →</Text>
+                  </View>
                 </View>
                 {record.handled && record.handler && (
                   <View className={styles.handledInfo}>
