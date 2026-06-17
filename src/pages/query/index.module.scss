@@ -22,6 +22,12 @@
   padding: 0 $spacing-lg;
   height: $button-height-md;
   box-shadow: $shadow-card;
+
+  &.disabled {
+    background-color: #FEF3C7;
+    border: 2rpx solid #F59E0B;
+    opacity: 0.9;
+  }
 }
 
 .searchIcon {

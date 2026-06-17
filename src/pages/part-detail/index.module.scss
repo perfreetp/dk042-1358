@@ -164,8 +164,8 @@
   }
 
   &.exception {
-    background-color: $color-danger;
-    box-shadow: 0 0 0 2rpx $color-danger;
+    background-color: $color-error;
+    box-shadow: 0 0 0 2rpx $color-error;
   }
 
   &.stocktake {
@@ -232,8 +232,8 @@
     color: $color-warning;
   }
   &.kind-exception {
-    background-color: $color-bg-tag-danger;
-    color: $color-danger;
+    background-color: $color-bg-tag-error;
+    color: $color-error;
   }
   &.kind-stocktake {
     background-color: #EDE9FE;

@@ -395,6 +395,17 @@
   }
 }
 
+.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.btnFull {
+  flex: 1 !important;
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-dark 100%) !important;
+  color: $color-text-white !important;
+}
+
 .historySection {
   padding: $spacing-md $page-padding;
 }

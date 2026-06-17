@@ -94,6 +94,7 @@ function saveState(state: PersistedState) {
 
 interface PartState extends PersistedState {
   highlightedPartId: string | null;
+  queryHighlightedOnly: boolean;
   setHighlightedPartId: (id: string) => void;
   clearHighlightedPartId: () => void;
 
@@ -164,7 +165,7 @@ interface PartState extends PersistedState {
     serialNumber?: string;
     batchNumber?: string;
     code: string;
-  }) => StocktakeItem | null;
+  }) => { item: StocktakeItem; alreadyScanned: boolean } | null;
 
   finishStocktake: (id: string, remark?: string) => StocktakeRecord | null;
 
@@ -186,8 +187,9 @@ export const usePartStore = create<PartState>((set, get) => ({
   ...initialState,
 
   highlightedPartId: null,
-  setHighlightedPartId: (id) => set({ highlightedPartId: id }),
-  clearHighlightedPartId: () => set({ highlightedPartId: null }),
+  queryHighlightedOnly: false,
+  setHighlightedPartId: (id) => set({ highlightedPartId: id, queryHighlightedOnly: true }),
+  clearHighlightedPartId: () => set({ highlightedPartId: null, queryHighlightedOnly: false }),
 
   addPart: (data) => {
     const { status, remark } = evaluatePartStatus(
@@ -342,13 +344,19 @@ export const usePartStore = create<PartState>((set, get) => ({
     const now = dayjs().format('YYYY-MM-DD HH:mm:ss');
     const title = data.title || `盘点 ${dayjs().format('YYYY-MM-DD HH:mm')}`;
 
-    const scopeParts = data.locationScope
-      ? parts.filter(
-          (p) =>
-            !p.location ||
-            p.location.toUpperCase().startsWith(data.locationScope!.toUpperCase())
-        )
-      : parts;
+    const inStockParts = parts.filter((p) => p.status !== 'outbound');
+
+    let scopeParts: LifePart[];
+    if (data.locationScope && data.locationScope.trim()) {
+      const scope = data.locationScope.trim().toUpperCase();
+      scopeParts = inStockParts.filter(
+        (p) =>
+          p.location &&
+          p.location.trim().toUpperCase().startsWith(scope)
+      );
+    } else {
+      scopeParts = inStockParts;
+    }
 
     const stocktakeId = generateId('st');
     const items: StocktakeItem[] = scopeParts.map((p) => ({
@@ -391,22 +399,27 @@ export const usePartStore = create<PartState>((set, get) => ({
   },
 
   scanStocktakeItem: (data) => {
-    const { stocktakeItems, parts } = get();
+    const { stocktakeItems, parts, stocktakeRecords } = get();
     const code = data.code.trim().toLowerCase();
+
+    const st = stocktakeRecords.find((r) => r.id === data.stocktakeId);
+    if (!st) return null;
+    if (st.status === 'completed') return null;
 
     const items = stocktakeItems.filter((i) => i.stocktakeId === data.stocktakeId);
     if (items.length === 0) return null;
 
     let found: StocktakeItem | undefined;
+    let alreadyScanned = false;
 
     for (const item of items) {
-      if (item.scanned) continue;
       if (
         (data.partNumber && item.partNumber.toLowerCase() === data.partNumber.toLowerCase()) ||
         (data.serialNumber && item.serialNumber.toLowerCase() === data.serialNumber.toLowerCase()) ||
         (data.batchNumber && item.batchNumber.toLowerCase() === data.batchNumber.toLowerCase())
       ) {
         found = item;
+        alreadyScanned = item.scanned;
         break;
       }
       if (
@@ -415,12 +428,16 @@ export const usePartStore = create<PartState>((set, get) => ({
         item.batchNumber.toLowerCase() === code
       ) {
         found = item;
+        alreadyScanned = item.scanned;
         break;
       }
     }
 
+    if (found && alreadyScanned) {
+      return { item: found, alreadyScanned: true };
+    }
+
     if (!found) {
-      // 扫到一个不在盘点范围的件（可能是当前盘库外的在库件）
       const loosePart =
         parts.find(
           (p) =>
@@ -462,7 +479,7 @@ export const usePartStore = create<PartState>((set, get) => ({
           )
         };
       });
-      return extra;
+      return { item: extra, alreadyScanned: false };
     }
 
     const now = dayjs().format('YYYY-MM-DD HH:mm:ss');
@@ -488,7 +505,7 @@ export const usePartStore = create<PartState>((set, get) => ({
         )
       };
     });
-    return updated;
+    return { item: updated, alreadyScanned: false };
   },
 
   finishStocktake: (id: string, remark?: string) => {
@@ -524,29 +541,46 @@ export const usePartStore = create<PartState>((set, get) => ({
     const state = get();
     const events: TimelineEvent[] = [];
 
-    const partNumber = query.partNumber;
-    const serialNumber = query.serialNumber;
-    const part =
-      (query.partId && state.parts.find((p) => p.id === query.partId)) ||
-      state.parts.find(
-        (p) =>
-          (partNumber ? p.partNumber === partNumber : true) &&
-          (serialNumber ? p.serialNumber === serialNumber : true)
-      );
+    let finalPartNumber: string | null = query.partNumber || null;
+    let finalSerialNumber: string | null = query.serialNumber || null;
 
-    if (part) {
+    if (query.partId) {
+      const part = state.parts.find((p) => p.id === query.partId);
+      if (part) {
+        finalPartNumber = part.partNumber;
+        finalSerialNumber = part.serialNumber;
+      }
+    } else if (finalPartNumber || finalSerialNumber) {
+      const part = state.parts.find((p) =>
+        (finalPartNumber ? p.partNumber === finalPartNumber : true) &&
+        (finalSerialNumber ? p.serialNumber === finalSerialNumber : true)
+      );
+      if (part) {
+        finalPartNumber = part.partNumber;
+        finalSerialNumber = part.serialNumber;
+      }
+    }
+
+    if (!finalPartNumber || !finalSerialNumber) {
+      return events;
+    }
+
+    const currentPart = state.parts.find(
+      (p) => p.partNumber === finalPartNumber && p.serialNumber === finalSerialNumber
+    );
+
+    if (currentPart) {
       events.push({
         kind: 'create',
-        id: `c-${part.id}`,
-        time: part.createTime,
+        id: `c-${currentPart.id}`,
+        time: currentPart.createTime,
         title: '入库建档',
-        desc: `${part.partName || part.partNumber} 录入系统 · 初始状态：${RETURN_REASON_LABEL[0] || ''}`.slice(0, 60)
+        desc: `${currentPart.partName || currentPart.partNumber} 录入系统 · 初始状态：${RETURN_REASON_LABEL[0] || ''}`.slice(0, 60)
       });
     }
 
     state.inboundRecords.forEach((r) => {
-      if (partNumber && r.partNumber !== partNumber) return;
-      if (serialNumber && r.serialNumber !== serialNumber) return;
+      if (r.partNumber !== finalPartNumber || r.serialNumber !== finalSerialNumber) return;
       events.push({
         kind: 'inbound',
         id: `ib-${r.id}`,
@@ -558,8 +592,7 @@ export const usePartStore = create<PartState>((set, get) => ({
     });
 
     state.outboundRecords.forEach((r) => {
-      if (partNumber && r.partNumber !== partNumber) return;
-      if (serialNumber && r.serialNumber !== serialNumber) return;
+      if (r.partNumber !== finalPartNumber || r.serialNumber !== finalSerialNumber) return;
       events.push({
         kind: 'outbound',
         id: `ob-${r.id}`,
@@ -573,8 +606,7 @@ export const usePartStore = create<PartState>((set, get) => ({
     });
 
     state.returnRecords.forEach((r) => {
-      if (partNumber && r.partNumber !== partNumber) return;
-      if (serialNumber && r.serialNumber !== serialNumber) return;
+      if (r.partNumber !== finalPartNumber || r.serialNumber !== finalSerialNumber) return;
       events.push({
         kind: 'return',
         id: `rt-${r.id}`,
@@ -586,8 +618,7 @@ export const usePartStore = create<PartState>((set, get) => ({
     });
 
     state.exceptionRecords.forEach((r) => {
-      if (partNumber && r.partNumber !== partNumber) return;
-      if (serialNumber && r.serialNumber !== serialNumber) return;
+      if (r.partNumber !== finalPartNumber || r.serialNumber !== finalSerialNumber) return;
       events.push({
         kind: 'exception',
         id: `ex-${r.id}`,
@@ -600,8 +631,7 @@ export const usePartStore = create<PartState>((set, get) => ({
     });
 
     state.stocktakeItems.forEach((si) => {
-      if (partNumber && si.partNumber !== partNumber) return;
-      if (serialNumber && si.serialNumber !== serialNumber) return;
+      if (si.partNumber !== finalPartNumber || si.serialNumber !== finalSerialNumber) return;
       const st = state.stocktakeRecords.find((r) => r.id === si.stocktakeId);
       if (!st) return;
       events.push({

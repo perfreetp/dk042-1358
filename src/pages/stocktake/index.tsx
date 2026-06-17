@@ -116,6 +116,10 @@ const StocktakePage: React.FC = () => {
 
   const applyScanCode = (rawCode: string) => {
     if (!activeStocktakeId) return;
+    if (activeRecord?.status === 'completed') {
+      Taro.showToast({ title: '该盘点已完成，只读', icon: 'none' });
+      return;
+    }
     const parsed = parsePackagingLabel(rawCode);
     const code =
       parsed.partNumber ||
@@ -123,7 +127,7 @@ const StocktakePage: React.FC = () => {
       parsed.batchNumber ||
       rawCode.trim();
 
-    const matched = scanStocktakeItem({
+    const result = scanStocktakeItem({
       stocktakeId: activeStocktakeId,
       partNumber: parsed.partNumber,
       serialNumber: parsed.serialNumber,
@@ -131,19 +135,30 @@ const StocktakePage: React.FC = () => {
       code
     });
 
-    if (matched) {
-      Taro.showToast({
-        title: matched.remark ? '盘外件已录入' : '✓ 已核对',
-        icon: 'success'
-      });
-    } else {
+    if (!result) {
       Taro.showModal({
         title: '未匹配到盘点项',
-        content: `扫码内容：\n${rawCode}\n\n未找到对应在库航材。`,
+        content: `扫码内容：\n${rawCode}\n\n未找到对应在库航材，或该盘点已结束。`,
         showCancel: false,
         confirmText: '我知道了'
       });
+      return;
     }
+
+    const { item, alreadyScanned } = result;
+    if (alreadyScanned) {
+      Taro.showToast({
+        title: `已盘过：${item.partName || item.partNumber}`,
+        icon: 'none',
+        duration: 1500
+      });
+      return;
+    }
+
+    Taro.showToast({
+      title: item.remark ? '盘外件已录入' : '✓ 已核对',
+      icon: 'success'
+    });
   };
 
   const handleManualSubmit = () => {
@@ -257,7 +272,10 @@ const StocktakePage: React.FC = () => {
   const renderWork = () => (
     <ScrollView scrollY>
       <View className={styles.progressHeader}>
-        <Text className={styles.progressTitle}>{activeRecord?.title || '盘点中'}</Text>
+        <Text className={styles.progressTitle}>
+          {activeRecord?.status === 'completed' ? '✓ 已完成：' : ''}
+          {activeRecord?.title || '盘点中'}
+        </Text>
         <View className={styles.progressStats}>
           <View className={styles.progressStat}>
             <Text className={styles.progressValue}>{activeRecord?.totalCount || 0}</Text>
@@ -286,26 +304,52 @@ const StocktakePage: React.FC = () => {
 
       <View className={styles.scanSection}>
         <View className={styles.scanCard}>
-          <View className={styles.scanPrimaryBtn} onClick={handleScan}>
+          <View
+            className={classnames(
+              styles.scanPrimaryBtn,
+              activeRecord?.status === 'completed' && styles.disabled
+            )}
+            onClick={() => {
+              if (activeRecord?.status === 'completed') {
+                Taro.showToast({ title: '该盘点已完成，只读', icon: 'none' });
+                return;
+              }
+              handleScan();
+            }}
+          >
             <Text className={styles.scanIcon}>⌖</Text>
-            <Text className={styles.scanText}>扫描下一件</Text>
+            <Text className={styles.scanText}>
+              {activeRecord?.status === 'completed' ? '盘点已完成（只读）' : '扫描下一件'}
+            </Text>
           </View>
           <Text className={styles.scanSub}>
-            扫包装标签或序号码，自动识别已核对；支持手动输入件号/序号/批次号
+            {activeRecord?.status === 'completed'
+              ? '盘点记录已归档，明细不可修改'
+              : '扫包装标签或序号码，自动识别已核对；支持手动输入件号/序号/批次号'}
           </Text>
           <View className={styles.manualRow}>
             <View className={styles.manualInput}>
               <Input
                 className={styles.manualInputField}
                 value={manualCode}
-                placeholder="手动输入件号/序号/批次号"
+                placeholder={activeRecord?.status === 'completed' ? '已完成，无法输入' : '手动输入件号/序号/批次号'}
                 placeholderClass={styles.placeholder}
+                disabled={activeRecord?.status === 'completed'}
                 onInput={(e) => setManualCode(e.detail.value)}
                 confirmType="done"
-                onConfirm={handleManualSubmit}
+                onConfirm={() => {
+                  if (activeRecord?.status !== 'completed') handleManualSubmit();
+                }}
               />
             </View>
-            <Button className={styles.manualBtn} onClick={handleManualSubmit}>
+            <Button
+              className={classnames(
+                styles.manualBtn,
+                activeRecord?.status === 'completed' && styles.disabled
+              )}
+              disabled={activeRecord?.status === 'completed'}
+              onClick={handleManualSubmit}
+            >
               标记
             </Button>
           </View>
@@ -390,21 +434,25 @@ const StocktakePage: React.FC = () => {
 
       <View className={styles.bottomBar}>
         <Button
-          className={styles.btnSecondary}
+          className={classnames(
+            styles.btnSecondary,
+            activeRecord?.status === 'completed' && styles.btnFull
+          )}
           onClick={() => {
             setViewMode('history');
             setActiveStocktakeId(null);
           }}
         >
-          返回
+          {activeRecord?.status === 'completed' ? '返回列表' : '返回'}
         </Button>
-        <Button
-          className={styles.btnPrimary}
-          disabled={activeRecord?.status === 'completed'}
-          onClick={handleFinish}
-        >
-          结束盘点 · 生成记录
-        </Button>
+        {activeRecord?.status !== 'completed' && (
+          <Button
+            className={styles.btnPrimary}
+            onClick={handleFinish}
+          >
+            结束盘点 · 生成记录
+          </Button>
+        )}
       </View>
     </ScrollView>
   );

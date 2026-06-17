@@ -18,6 +18,7 @@ const QueryPage: React.FC = () => {
   const {
     parts,
     highlightedPartId,
+    queryHighlightedOnly,
     setHighlightedPartId,
     clearHighlightedPartId,
     stocktakeRecords
@@ -30,12 +31,15 @@ const QueryPage: React.FC = () => {
 
   const filteredParts = useMemo(() => {
     const inStock = parts.filter((p) => p.status !== 'outbound');
+    if (queryHighlightedOnly && highlightedPart) {
+      return inStock.filter((p) => p.id === highlightedPart.id);
+    }
     return inStock.filter((part) => {
       const matchesKeyword = matchesSearch(part, keyword);
       const matchesFilter = activeFilter === 'all' ? true : part.status === activeFilter;
       return matchesKeyword && matchesFilter;
     });
-  }, [parts, keyword, activeFilter]);
+  }, [parts, keyword, activeFilter, queryHighlightedOnly, highlightedPart]);
 
   useEffect(() => {
     if (highlightedPartId) {
@@ -100,74 +104,96 @@ const QueryPage: React.FC = () => {
   return (
     <View className={styles.container}>
       <View className={styles.searchBar}>
-        <View className={styles.searchInputWrapper}>
-          <Text className={styles.searchIcon}>🔍</Text>
+        <View
+          className={classnames(
+            styles.searchInputWrapper,
+            queryHighlightedOnly && styles.disabled
+          )}
+        >
+          <Text className={styles.searchIcon}>
+            {queryHighlightedOnly ? '✦' : '🔍'}
+          </Text>
           <Input
             className={styles.searchInput}
-            value={keyword}
-            placeholder="输入件号、序号、批次号搜索"
+            value={queryHighlightedOnly ? '' : keyword}
+            placeholder={queryHighlightedOnly ? '已定位退库件，点击关闭恢复搜索' : '输入件号、序号、批次号搜索'}
             placeholderClass={styles.placeholder}
-            onInput={(e) => setKeyword(e.detail.value)}
+            disabled={queryHighlightedOnly}
+            onInput={(e) => !queryHighlightedOnly && setKeyword(e.detail.value)}
             confirmType="search"
           />
-          {keyword && (
+          {!queryHighlightedOnly && keyword && (
             <View className={styles.clearBtn} onClick={handleClear}>
               <Text>✕</Text>
             </View>
           )}
         </View>
-        <View className={styles.filterRow}>
-          {filters.map((f) => (
-            <View
-              key={f.key}
-              className={classnames(styles.filterTag, activeFilter === f.key && styles.active)}
-              onClick={() => setActiveFilter(f.key)}
-            >
-              <Text>{f.label}</Text>
-            </View>
-          ))}
-        </View>
+        {!queryHighlightedOnly && (
+          <View className={styles.filterRow}>
+            {filters.map((f) => (
+              <View
+                key={f.key}
+                className={classnames(styles.filterTag, activeFilter === f.key && styles.active)}
+                onClick={() => setActiveFilter(f.key)}
+              >
+                <Text>{f.label}</Text>
+              </View>
+            ))}
+          </View>
+        )}
       </View>
 
-      <View className={styles.toolsRow}>
-        <View className={styles.toolCard} onClick={handleGoStocktake}>
-          <View className={styles.toolIcon}>
-            <Text>📋</Text>
+      {!queryHighlightedOnly && (
+        <View className={styles.toolsRow}>
+          <View className={styles.toolCard} onClick={handleGoStocktake}>
+            <View className={styles.toolIcon}>
+              <Text>📋</Text>
+            </View>
+            <View className={styles.toolText}>
+              <Text className={styles.toolTitle}>库存盘点</Text>
+              <Text className={styles.toolDesc}>
+                {inProgressStocktake
+                  ? `进行中：${inProgressStocktake.scannedCount}/${inProgressStocktake.totalCount}`
+                  : '扫码逐件核对，生成差异报告'}
+              </Text>
+            </View>
           </View>
-          <View className={styles.toolText}>
-            <Text className={styles.toolTitle}>库存盘点</Text>
-            <Text className={styles.toolDesc}>
-              {inProgressStocktake
-                ? `进行中：${inProgressStocktake.scannedCount}/${inProgressStocktake.totalCount}`
-                : '扫码逐件核对，生成差异报告'}
-            </Text>
+          <View className={classnames(styles.toolCard, styles.secondary)} onClick={handleGoHistory}>
+            <View className={styles.toolIcon}>
+              <Text>📒</Text>
+            </View>
+            <View className={styles.toolText}>
+              <Text className={styles.toolTitle}>盘点历史</Text>
+              <Text className={styles.toolDesc}>
+                {stocktakeRecords.length} 次记录
+              </Text>
+            </View>
           </View>
         </View>
-        <View className={classnames(styles.toolCard, styles.secondary)} onClick={handleGoHistory}>
-          <View className={styles.toolIcon}>
-            <Text>📒</Text>
-          </View>
-          <View className={styles.toolText}>
-            <Text className={styles.toolTitle}>盘点历史</Text>
-            <Text className={styles.toolDesc}>
-              {stocktakeRecords.length} 次记录
-            </Text>
-          </View>
-        </View>
-      </View>
+      )}
 
       {highlightedPart && (
         <View className={styles.highlightBanner} onClick={handleLocateHighlighted}>
           <View className={styles.highlightText}>
-            <Text className={styles.highlightTitle}>✦ 刚退回的航材已定位</Text>
+            <Text className={styles.highlightTitle}>
+              ✦ 退库成功 · 已定位到刚退回的航材
+            </Text>
             <Text className={styles.highlightDesc}>
               {highlightedPart.partName || highlightedPart.partNumber} · {highlightedPart.serialNumber}
+              {' '}· 状态：{STATUS_LABEL[highlightedPart.status]}
+              {highlightedPart.status === 'pending' && highlightedPart.statusRemark
+                ? ` · ${highlightedPart.statusRemark}`
+                : ''}
             </Text>
           </View>
-          <View className={styles.highlightClear} onClick={(e) => {
-            e.stopPropagation();
-            clearHighlightedPartId();
-          }}>
+          <View
+            className={styles.highlightClear}
+            onClick={(e) => {
+              e.stopPropagation();
+              clearHighlightedPartId();
+              Taro.showToast({ title: '已恢复正常查询', icon: 'none' });
+            }}
+          >
             <Text>关闭</Text>
           </View>
         </View>
