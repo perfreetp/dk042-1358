@@ -1,0 +1,76 @@
+@use '@/styles/variables.scss' as *;
+
+.wrapper {
+  background-color: $color-bg-card;
+  border-radius: $radius-md;
+  padding: $spacing-md $spacing-lg;
+  border: 2rpx solid $color-border;
+  transition: border-color $transition-fast;
+  margin-bottom: $spacing-md;
+
+  &.focused {
+    border-color: $color-primary;
+  }
+}
+
+.labelRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-sm;
+}
+
+.label {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  font-weight: $font-weight-medium;
+}
+
+.required {
+  color: $color-error;
+  margin-left: 4rpx;
+}
+
+.scanBtn {
+  display: inline-flex;
+  align-items: center;
+  padding: 6rpx 16rpx;
+  background-color: $color-bg-tag-primary;
+  border-radius: $radius-sm;
+  transition: opacity $transition-fast;
+
+  &:active {
+    opacity: 0.7;
+  }
+}
+
+.scanIcon {
+  font-size: $font-size-md;
+  color: $color-primary;
+  margin-right: 6rpx;
+  font-weight: $font-weight-bold;
+}
+
+.scanText {
+  font-size: $font-size-xs;
+  color: $color-primary;
+  font-weight: $font-weight-medium;
+}
+
+.inputContainer {
+  width: 100%;
+}
+
+.input {
+  width: 100%;
+  font-size: $font-size-lg;
+  color: $color-text-primary;
+  line-height: 1.4;
+  padding: 0;
+  height: 56rpx;
+}
+
+.placeholder {
+  color: $color-text-disabled;
+  font-size: $font-size-md;
+}

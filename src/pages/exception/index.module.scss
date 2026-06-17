@@ -1,0 +1,208 @@
+@use '@/styles/variables.scss' as *;
+
+.container {
+  min-height: 100vh;
+  background-color: $color-bg-page;
+  padding-bottom: 40rpx;
+}
+
+.header {
+  background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%);
+  padding: 48rpx $page-padding 56rpx;
+  color: $color-text-white;
+}
+
+.headerTitle {
+  font-size: $font-size-xxl;
+  font-weight: $font-weight-bold;
+  margin-bottom: 8rpx;
+}
+
+.headerSubtitle {
+  font-size: $font-size-sm;
+  opacity: 0.85;
+}
+
+.summaryRow {
+  display: flex;
+  gap: $spacing-md;
+  margin-top: $spacing-lg;
+}
+
+.summaryItem {
+  flex: 1;
+  background-color: rgba(255, 255, 255, 0.15);
+  border-radius: $radius-md;
+  padding: $spacing-md;
+}
+
+.summaryValue {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  line-height: 1.2;
+}
+
+.summaryLabel {
+  font-size: $font-size-xs;
+  opacity: 0.8;
+  margin-top: 4rpx;
+}
+
+.content {
+  padding: 0 $page-padding;
+  margin-top: -32rpx;
+}
+
+.tabRow {
+  display: flex;
+  background-color: $color-bg-card;
+  border-radius: $radius-md;
+  padding: 6rpx;
+  margin-bottom: $spacing-md;
+  box-shadow: $shadow-card;
+}
+
+.tabItem {
+  flex: 1;
+  padding: $spacing-sm 0;
+  text-align: center;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  border-radius: $radius-sm;
+  transition: all $transition-fast;
+
+  &.active {
+    background-color: $color-error;
+    color: $color-text-white;
+    font-weight: $font-weight-medium;
+  }
+}
+
+.exceptionList {
+  background-color: $color-bg-card;
+  border-radius: $radius-lg;
+  overflow: hidden;
+  box-shadow: $shadow-card;
+  margin-bottom: $spacing-md;
+}
+
+.exceptionItem {
+  padding: $spacing-lg;
+  border-bottom: 1rpx solid $color-divider;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:active {
+    background-color: $color-bg-hover;
+  }
+}
+
+.exceptionHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: $spacing-sm;
+}
+
+.levelBadge {
+  padding: 4rpx 12rpx;
+  border-radius: $radius-xs;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+}
+
+.levelHigh {
+  background-color: $color-bg-tag-error;
+  color: $color-error;
+}
+
+.levelMedium {
+  background-color: $color-bg-tag-warning;
+  color: $color-warning;
+}
+
+.levelLow {
+  background-color: $color-bg-tag-primary;
+  color: $color-primary;
+}
+
+.handledBadge {
+  padding: 4rpx 12rpx;
+  border-radius: $radius-xs;
+  font-size: $font-size-xs;
+  background-color: $color-bg-tag-success;
+  color: $color-success;
+  font-weight: $font-weight-medium;
+}
+
+.exceptionPart {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: 4rpx;
+  @include text-ellipsis;
+}
+
+.exceptionDesc {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  line-height: 1.5;
+  margin-bottom: $spacing-sm;
+}
+
+.exceptionMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.exceptionTime {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.handleBtn {
+  font-size: $font-size-xs;
+  color: $color-primary;
+  font-weight: $font-weight-medium;
+}
+
+.handledInfo {
+  margin-top: $spacing-sm;
+  padding-top: $spacing-sm;
+  border-top: 1rpx dashed $color-border;
+}
+
+.handledText {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  line-height: 1.5;
+}
+
+.emptyState {
+  background-color: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: 100rpx $page-padding;
+  text-align: center;
+  box-shadow: $shadow-card;
+}
+
+.emptyIcon {
+  font-size: 80rpx;
+  margin-bottom: $spacing-md;
+  opacity: 0.3;
+}
+
+.emptyTitle {
+  font-size: $font-size-lg;
+  color: $color-text-secondary;
+  font-weight: $font-weight-medium;
+  margin-bottom: $spacing-xs;
+}
+
+.emptyDesc {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+}

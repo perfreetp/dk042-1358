@@ -1,0 +1,96 @@
+@use '@/styles/variables.scss' as *;
+
+.card {
+  background-color: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  box-shadow: $shadow-card;
+  margin-bottom: $spacing-md;
+
+  &:active {
+    opacity: 0.9;
+  }
+}
+
+.header {
+  margin-bottom: $spacing-md;
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-xs;
+}
+
+.partName {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  @include text-ellipsis;
+  flex: 1;
+  margin-right: $spacing-sm;
+}
+
+.partNumber {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.divider {
+  height: 1rpx;
+  background-color: $color-divider;
+  margin-bottom: $spacing-md;
+}
+
+.infoGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-md;
+}
+
+.infoItem {
+  width: calc(50% - #{$spacing-sm});
+}
+
+.label {
+  display: block;
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  margin-bottom: 4rpx;
+}
+
+.value {
+  display: block;
+  font-size: $font-size-md;
+  color: $color-text-primary;
+  font-weight: $font-weight-medium;
+  @include text-ellipsis;
+}
+
+.lifeValue {
+  color: $color-primary;
+  font-weight: $font-weight-semibold;
+}
+
+.footer {
+  margin-top: $spacing-md;
+  padding-top: $spacing-md;
+  border-top: 1rpx solid $color-divider;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.locationText {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.remarkText {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  @include text-ellipsis;
+  max-width: 360rpx;
+  text-align: right;
+}

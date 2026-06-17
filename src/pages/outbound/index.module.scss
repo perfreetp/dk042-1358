@@ -1,0 +1,296 @@
+@use '@/styles/variables.scss' as *;
+
+.container {
+  min-height: 100vh;
+  background-color: $color-bg-page;
+  padding-bottom: 200rpx;
+}
+
+.section {
+  padding: $spacing-md $page-padding;
+}
+
+.sectionTitle {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $color-text-secondary;
+  margin-bottom: $spacing-md;
+  padding-left: $spacing-sm;
+  border-left: 4rpx solid $color-primary;
+}
+
+.formCard {
+  background-color: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  box-shadow: $shadow-card;
+  margin-bottom: $spacing-md;
+}
+
+.inputRow {
+  margin-bottom: $spacing-md;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.inputLabel {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  margin-bottom: $spacing-xs;
+  display: flex;
+  align-items: center;
+
+  &.required::before {
+    content: '*';
+    color: $color-error;
+    margin-right: 4rpx;
+  }
+}
+
+.inputWrapper {
+  background-color: $color-bg-page;
+  border-radius: $radius-md;
+  padding: 0 $spacing-lg;
+  height: $button-height-md;
+  display: flex;
+  align-items: center;
+  border: 2rpx solid transparent;
+  transition: border-color $transition-fast;
+
+  &.focused {
+    border-color: $color-primary;
+    background-color: $color-bg-card;
+  }
+}
+
+.inputField {
+  flex: 1;
+  font-size: $font-size-md;
+  color: $color-text-primary;
+  height: 100%;
+}
+
+.placeholder {
+  color: $color-text-disabled;
+}
+
+.modeSelector {
+  display: flex;
+  gap: $spacing-sm;
+}
+
+.modeOption {
+  flex: 1;
+  padding: $spacing-sm 0;
+  text-align: center;
+  background-color: $color-bg-page;
+  border-radius: $radius-md;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  border: 2rpx solid transparent;
+  transition: all $transition-fast;
+
+  &.active {
+    background-color: $color-bg-tag-primary;
+    color: $color-primary;
+    border-color: $color-primary;
+    font-weight: $font-weight-medium;
+  }
+}
+
+.checkboxRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $spacing-sm 0;
+}
+
+.checkboxLabel {
+  font-size: $font-size-md;
+  color: $color-text-primary;
+}
+
+.checkbox {
+  width: 44rpx;
+  height: 44rpx;
+  border-radius: $radius-sm;
+  border: 2rpx solid $color-border;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all $transition-fast;
+
+  &.checked {
+    background-color: $color-primary;
+    border-color: $color-primary;
+  }
+}
+
+.checkboxIcon {
+  color: $color-text-white;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-bold;
+}
+
+.lifeCheckCard {
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  margin-top: $spacing-md;
+}
+
+.lifeOk {
+  background-color: $color-bg-tag-success;
+  border: 2rpx solid rgba(5, 150, 105, 0.3);
+}
+
+.lifeWarning {
+  background-color: $color-bg-tag-warning;
+  border: 2rpx solid rgba(217, 119, 6, 0.3);
+}
+
+.lifeFail {
+  background-color: $color-bg-tag-error;
+  border: 2rpx solid rgba(220, 38, 38, 0.3);
+}
+
+.lifeHeader {
+  display: flex;
+  align-items: center;
+  margin-bottom: $spacing-sm;
+}
+
+.lifeIcon {
+  font-size: $font-size-xl;
+  margin-right: $spacing-sm;
+}
+
+.lifeTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-bold;
+
+  .lifeOk & { color: $color-status-available; }
+  .lifeWarning & { color: $color-status-pending; }
+  .lifeFail & { color: $color-status-unavailable; }
+}
+
+.lifeDesc {
+  font-size: $font-size-sm;
+  line-height: 1.6;
+  color: $color-text-secondary;
+}
+
+.partList {
+  max-height: 600rpx;
+}
+
+.partItem {
+  padding: $spacing-md;
+  border: 2rpx solid $color-border;
+  border-radius: $radius-md;
+  margin-bottom: $spacing-sm;
+  transition: all $transition-fast;
+
+  &.selected {
+    border-color: $color-primary;
+    background-color: $color-bg-tag-primary;
+  }
+
+  &:active {
+    opacity: 0.8;
+  }
+}
+
+.partItemHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-xs;
+}
+
+.partItemName {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  @include text-ellipsis;
+  flex: 1;
+  margin-right: $spacing-sm;
+}
+
+.partItemMeta {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.partItemLife {
+  font-size: $font-size-sm;
+  color: $color-primary;
+  font-weight: $font-weight-medium;
+  margin-top: 4rpx;
+}
+
+.bottomBar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: $color-bg-card;
+  padding: $spacing-md $page-padding;
+  padding-bottom: calc(#{$spacing-md} + env(safe-area-inset-bottom));
+  box-shadow: 0 -4rpx 16rpx rgba(0, 0, 0, 0.06);
+  display: flex;
+  gap: $spacing-md;
+}
+
+.btnCancel {
+  @include button-reset;
+  flex: 1;
+  height: $button-height-lg;
+  border-radius: $radius-button;
+  background-color: $color-bg-page;
+  color: $color-text-secondary;
+  font-size: $font-size-md;
+  font-weight: $font-weight-medium;
+
+  &:active {
+    opacity: 0.8;
+  }
+}
+
+.btnConfirm {
+  @include button-reset;
+  flex: 2;
+  height: $button-height-lg;
+  border-radius: $radius-button;
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-dark 100%);
+  color: $color-text-white;
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+
+  &:disabled {
+    opacity: 0.5;
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.98);
+    opacity: 0.9;
+  }
+}
+
+.emptyParts {
+  padding: 48rpx 0;
+  text-align: center;
+}
+
+.emptyText {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+}
+
+.searchHint {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  margin-bottom: $spacing-sm;
+  padding-left: $spacing-xs;
+}

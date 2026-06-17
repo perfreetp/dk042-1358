@@ -1,0 +1,123 @@
+@use '@/styles/variables.scss' as *;
+
+.container {
+  min-height: 100vh;
+  background-color: $color-bg-page;
+  padding-bottom: 40rpx;
+}
+
+.searchBar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background-color: $color-bg-page;
+  padding: $spacing-lg $page-padding $spacing-md;
+}
+
+.searchInputWrapper {
+  display: flex;
+  align-items: center;
+  background-color: $color-bg-card;
+  border-radius: $radius-button;
+  padding: 0 $spacing-lg;
+  height: $button-height-md;
+  box-shadow: $shadow-card;
+}
+
+.searchIcon {
+  font-size: $font-size-lg;
+  color: $color-text-tertiary;
+  margin-right: $spacing-sm;
+}
+
+.searchInput {
+  flex: 1;
+  font-size: $font-size-md;
+  color: $color-text-primary;
+  height: 100%;
+}
+
+.placeholder {
+  color: $color-text-disabled;
+}
+
+.clearBtn {
+  padding: $spacing-xs $spacing-sm;
+  color: $color-text-tertiary;
+  font-size: $font-size-md;
+}
+
+.filterRow {
+  display: flex;
+  gap: $spacing-sm;
+  margin-top: $spacing-md;
+}
+
+.filterTag {
+  padding: 10rpx 24rpx;
+  border-radius: $radius-button;
+  background-color: $color-bg-card;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  white-space: nowrap;
+  transition: all $transition-fast;
+
+  &.active {
+    background-color: $color-primary;
+    color: $color-text-white;
+    font-weight: $font-weight-medium;
+  }
+}
+
+.resultsSection {
+  padding: 0 $page-padding;
+}
+
+.resultsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-md;
+}
+
+.resultsTitle {
+  font-size: $font-size-md;
+  color: $color-text-secondary;
+}
+
+.resultsCount {
+  font-size: $font-size-md;
+  color: $color-primary;
+  font-weight: $font-weight-semibold;
+}
+
+.partList {
+  padding-bottom: $spacing-xl;
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 120rpx $page-padding;
+}
+
+.emptyIcon {
+  font-size: 100rpx;
+  margin-bottom: $spacing-md;
+  opacity: 0.3;
+}
+
+.emptyTitle {
+  font-size: $font-size-lg;
+  color: $color-text-secondary;
+  font-weight: $font-weight-medium;
+  margin-bottom: $spacing-xs;
+}
+
+.emptyDesc {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+  text-align: center;
+}
