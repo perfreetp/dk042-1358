@@ -5,8 +5,8 @@ import classnames from 'classnames';
 import { usePartStore } from '@/store/usePartStore';
 import StatusBadge from '@/components/StatusBadge';
 import { LIFE_UNIT_LABEL, RETURN_REASON_LABEL } from '@/types/part';
-import type { LifePart, ReturnReason } from '@/types/part';
-import { matchesSearch } from '@/utils/status';
+import type { OutboundRecord, ReturnReason } from '@/types/part';
+import { formatDateTime } from '@/utils/status';
 import styles from './index.module.scss';
 
 const reasonOptions: { key: ReturnReason; desc: string }[] = [
@@ -17,31 +17,43 @@ const reasonOptions: { key: ReturnReason; desc: string }[] = [
 ];
 
 const ReturnPage: React.FC = () => {
-  const { parts, recordReturn } = usePartStore();
+  const { outboundRecords, recordReturn } = usePartStore();
 
   const [searchKeyword, setSearchKeyword] = useState('');
-  const [selectedPartId, setSelectedPartId] = useState<string | null>(null);
+  const [selectedOutboundId, setSelectedOutboundId] = useState<string | null>(null);
   const [selectedReason, setSelectedReason] = useState<ReturnReason | null>(null);
   const [remark, setRemark] = useState('');
   const [focusedField, setFocusedField] = useState<string | null>(null);
 
-  const allParts = useMemo(() => parts, [parts]);
+  const returnableOutbounds = useMemo(() => {
+    return outboundRecords.filter((r) => !r.returned);
+  }, [outboundRecords]);
 
-  const filteredParts = useMemo(() => {
-    if (!searchKeyword.trim()) return allParts;
-    return allParts.filter((p) => matchesSearch(p, searchKeyword));
-  }, [allParts, searchKeyword]);
+  const filteredOutbounds = useMemo(() => {
+    if (!searchKeyword.trim()) return returnableOutbounds;
+    const kw = searchKeyword.toLowerCase().trim();
+    return returnableOutbounds.filter(
+      (r) =>
+        r.partNumber.toLowerCase().includes(kw) ||
+        r.serialNumber.toLowerCase().includes(kw) ||
+        r.batchNumber.toLowerCase().includes(kw) ||
+        (r.partName || '').toLowerCase().includes(kw) ||
+        (r.workOrder || '').toLowerCase().includes(kw) ||
+        (r.aircraftReg || '').toLowerCase().includes(kw) ||
+        (r.receiver || '').toLowerCase().includes(kw)
+    );
+  }, [returnableOutbounds, searchKeyword]);
 
-  const selectedPart = useMemo(() => {
-    return parts.find((p) => p.id === selectedPartId) || null;
-  }, [parts, selectedPartId]);
+  const selectedOutbound = useMemo(() => {
+    return outboundRecords.find((r) => r.id === selectedOutboundId) || null;
+  }, [outboundRecords, selectedOutboundId]);
 
   const canSubmit = useMemo(() => {
-    return selectedPartId !== null && selectedReason !== null;
-  }, [selectedPartId, selectedReason]);
+    return selectedOutboundId !== null && selectedReason !== null;
+  }, [selectedOutboundId, selectedReason]);
 
-  const handleSelectPart = (part: LifePart) => {
-    setSelectedPartId(part.id);
+  const handleSelectOutbound = (record: OutboundRecord) => {
+    setSelectedOutboundId(record.id);
     setSearchKeyword('');
   };
 
@@ -50,14 +62,14 @@ const ReturnPage: React.FC = () => {
   };
 
   const handleSubmit = () => {
-    if (!canSubmit || !selectedPart || !selectedReason) {
-      Taro.showToast({ title: '请填写完整信息', icon: 'none' });
+    if (!selectedOutbound || !selectedReason) {
+      Taro.showToast({ title: '请选择航材并填写拆下原因', icon: 'none' });
       return;
     }
 
     Taro.showModal({
       title: '确认退库？',
-      content: `航材: ${selectedPart.partName || selectedPart.partNumber}\n原因: ${RETURN_REASON_LABEL[selectedReason]}\n${remark ? `备注: ${remark}` : ''}`,
+      content: `航材: ${selectedOutbound.partName || selectedOutbound.partNumber}\n原因: ${RETURN_REASON_LABEL[selectedReason]}${remark ? `\n备注: ${remark}` : ''}\n\n退库后将回归在库列表，状态显示为待处理。`,
       confirmText: '确认退库',
       success: (res) => {
         if (res.confirm) {
@@ -68,26 +80,29 @@ const ReturnPage: React.FC = () => {
   };
 
   const doSubmit = () => {
-    if (!selectedPart || !selectedReason) return;
+    if (!selectedOutbound || !selectedReason) return;
 
     try {
-      recordReturn({
-        partId: selectedPart.id,
+      const success = recordReturn({
+        outboundRecordId: selectedOutbound.id,
         reason: selectedReason,
         remark: remark.trim() || undefined,
         operator: '当前收发员'
       });
 
-      console.log('[Return] 退库成功');
-      Taro.showToast({
-        title: '退库成功',
-        icon: 'success',
-        duration: 1500
-      });
-
-      setTimeout(() => {
-        Taro.navigateBack();
-      }, 1500);
+      if (success) {
+        console.log('[Return] 退库成功');
+        Taro.showToast({
+          title: '退库成功',
+          icon: 'success',
+          duration: 1500
+        });
+        setTimeout(() => {
+          Taro.navigateBack();
+        }, 1500);
+      } else {
+        Taro.showToast({ title: '该出库记录不可退库', icon: 'none' });
+      }
     } catch (error) {
       console.error('[Return] 退库失败:', error);
       Taro.showToast({ title: '退库失败，请重试', icon: 'none' });
@@ -97,26 +112,39 @@ const ReturnPage: React.FC = () => {
   return (
     <ScrollView className={styles.container} scrollY>
       <View className={styles.section}>
-        <Text className={styles.sectionTitle}>选择退库航材</Text>
+        <Text className={styles.sectionTitle}>选择退库航材（已出库）</Text>
         <View className={styles.formCard}>
-          {selectedPart ? (
+          {selectedOutbound ? (
             <View className={classnames(styles.partItem, styles.selected)}>
               <View className={styles.partItemHeader}>
                 <Text className={styles.partItemName}>
-                  {selectedPart.partName || selectedPart.partNumber}
+                  {selectedOutbound.partName || selectedOutbound.partNumber}
                 </Text>
-                <StatusBadge status={selectedPart.status} size="sm" />
+                <StatusBadge status="pending" size="sm" />
               </View>
               <Text className={styles.partItemMeta}>
-                {selectedPart.partNumber} · {selectedPart.serialNumber}
+                {selectedOutbound.partNumber} · {selectedOutbound.serialNumber}
               </Text>
-              <View style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
+              <View style={{ marginTop: 8 }}>
                 <Text className={styles.partItemLife}>
-                  剩余: {selectedPart.remainingLife} {LIFE_UNIT_LABEL[selectedPart.lifeUnit]}
+                  剩余: {selectedOutbound.remainingLife} {LIFE_UNIT_LABEL[selectedOutbound.lifeUnit]}
                 </Text>
+              </View>
+              <View className={styles.outboundMeta}>
+                <Text className={styles.outboundMetaText}>
+                  发料: {formatDateTime(selectedOutbound.createTime)}
+                </Text>
+                <Text className={styles.outboundMetaText}>
+                  {selectedOutbound.workOrder || selectedOutbound.aircraftReg || '-'}
+                </Text>
+                <Text className={styles.outboundMetaText}>
+                  领料人: {selectedOutbound.receiver}
+                </Text>
+              </View>
+              <View style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
                 <Text
                   style={{ fontSize: 24, color: '#94A3B8' }}
-                  onClick={() => setSelectedPartId(null)}
+                  onClick={() => setSelectedOutboundId(null)}
                 >
                   更换
                 </Text>
@@ -125,7 +153,7 @@ const ReturnPage: React.FC = () => {
           ) : (
             <View>
               <View className={styles.inputRow}>
-                <Text className={styles.inputLabel}>搜索航材</Text>
+                <Text className={styles.inputLabel}>搜索已出库航材</Text>
                 <View
                   className={classnames(
                     styles.inputWrapper,
@@ -135,7 +163,7 @@ const ReturnPage: React.FC = () => {
                   <Input
                     className={styles.inputField}
                     value={searchKeyword}
-                    placeholder="输入件号、序号、批次号搜索"
+                    placeholder="件号/序号/工单/领料人"
                     placeholderClass={styles.placeholder}
                     onInput={(e) => setSearchKeyword(e.detail.value)}
                     onFocus={() => setFocusedField('search')}
@@ -144,33 +172,41 @@ const ReturnPage: React.FC = () => {
                 </View>
               </View>
               <Text className={styles.searchHint}>
-                共 {allParts.length} 件在库航材
+                共 {returnableOutbounds.length} 件已出库可退航材
               </Text>
               <View className={styles.partList}>
-                {filteredParts.length === 0 ? (
+                {filteredOutbounds.length === 0 ? (
                   <View className={styles.emptyParts}>
                     <Text className={styles.emptyText}>
-                      {searchKeyword ? '未找到匹配的航材' : '暂无航材记录'}
+                      {searchKeyword
+                        ? '未找到匹配的出库记录'
+                        : returnableOutbounds.length === 0
+                        ? '暂无可退库的出库记录，请先出库'
+                        : '暂无出库记录'}
                     </Text>
                   </View>
                 ) : (
-                  filteredParts.slice(0, 5).map((part) => (
+                  filteredOutbounds.slice(0, 8).map((record) => (
                     <View
-                      key={part.id}
+                      key={record.id}
                       className={styles.partItem}
-                      onClick={() => handleSelectPart(part)}
+                      onClick={() => handleSelectOutbound(record)}
                     >
                       <View className={styles.partItemHeader}>
                         <Text className={styles.partItemName}>
-                          {part.partName || part.partNumber}
+                          {record.partName || record.partNumber}
                         </Text>
-                        <StatusBadge status={part.status} size="sm" />
+                        <Text className={styles.partItemTime}>
+                          {formatDateTime(record.createTime)}
+                        </Text>
                       </View>
                       <Text className={styles.partItemMeta}>
-                        {part.partNumber} · {part.serialNumber}
+                        {record.partNumber} · {record.serialNumber}
                       </Text>
                       <Text className={styles.partItemLife}>
-                        剩余: {part.remainingLife} {LIFE_UNIT_LABEL[part.lifeUnit]}
+                        剩余: {record.remainingLife} {LIFE_UNIT_LABEL[record.lifeUnit]}
+                        {' · '}
+                        {record.workOrder || record.aircraftReg || '无关联'}
                       </Text>
                     </View>
                   ))

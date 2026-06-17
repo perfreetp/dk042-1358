@@ -5,6 +5,7 @@ import classnames from 'classnames';
 import { usePartStore } from '@/store/usePartStore';
 import { formatDateTime } from '@/utils/status';
 import type { TransactionType } from '@/types/part';
+import { RETURN_REASON_LABEL } from '@/types/part';
 import styles from './index.module.scss';
 
 type TabType = 'all' | TransactionType;
@@ -145,7 +146,8 @@ const TransactionPage: React.FC = () => {
                   {record.type === 'inbound' && `操作员: ${record.operator}`}
                   {record.type === 'outbound' &&
                     `领料: ${record.receiver} · ${record.workOrder || record.aircraftReg || ''}`}
-                  {record.type === 'return' && `原因: ${record.reason}`}
+                  {record.type === 'return' &&
+                    `原因: ${RETURN_REASON_LABEL[record.reason] || record.reason}`}
                 </Text>
               </View>
             ))

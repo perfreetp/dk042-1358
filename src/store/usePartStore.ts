@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import Taro from '@tarojs/taro';
 import dayjs from 'dayjs';
 import type {
   LifePart,
@@ -10,6 +11,7 @@ import type {
   LifeUnit,
   ReturnReason
 } from '@/types/part';
+import { RETURN_REASON_LABEL } from '@/types/part';
 import {
   mockParts,
   mockInboundRecords,
@@ -19,13 +21,56 @@ import {
 } from '@/data/mockParts';
 import { generateId, evaluatePartStatus } from '@/utils/status';
 
-interface PartState {
+const STORAGE_KEY = 'life_part_store_v1';
+
+interface PersistedState {
   parts: LifePart[];
   inboundRecords: InboundRecord[];
   outboundRecords: OutboundRecord[];
   returnRecords: ReturnRecord[];
   exceptionRecords: ExceptionRecord[];
+}
 
+function loadState(): PersistedState | null {
+  try {
+    const raw = Taro.getStorageSync(STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as PersistedState;
+    if (
+      !parsed ||
+      !Array.isArray(parsed.parts) ||
+      !Array.isArray(parsed.inboundRecords) ||
+      !Array.isArray(parsed.outboundRecords) ||
+      !Array.isArray(parsed.returnRecords) ||
+      !Array.isArray(parsed.exceptionRecords)
+    ) {
+      return null;
+    }
+    return parsed;
+  } catch (e) {
+    console.error('[store] 读取本地缓存失败:', e);
+    return null;
+  }
+}
+
+function saveState(state: PersistedState) {
+  try {
+    Taro.setStorageSync(
+      STORAGE_KEY,
+      JSON.stringify({
+        parts: state.parts,
+        inboundRecords: state.inboundRecords,
+        outboundRecords: state.outboundRecords,
+        returnRecords: state.returnRecords,
+        exceptionRecords: state.exceptionRecords
+      })
+    );
+  } catch (e) {
+    console.error('[store] 写入本地缓存失败:', e);
+  }
+}
+
+interface PartState extends PersistedState {
   addPart: (data: {
     partNumber: string;
     serialNumber: string;
@@ -61,25 +106,34 @@ interface PartState {
   }) => boolean;
 
   recordReturn: (data: {
-    partId: string;
+    outboundRecordId: string;
     reason: ReturnReason;
     remark?: string;
     operator: string;
-  }) => void;
+  }) => boolean;
 
   handleException: (id: string, handler: string, remark: string) => void;
+
+  resetData: () => void;
 
   getPartById: (id: string) => LifePart | undefined;
 
   getAvailableParts: () => LifePart[];
+
+  getReturnableOutbounds: () => OutboundRecord[];
 }
 
-export const usePartStore = create<PartState>((set, get) => ({
+const persisted = loadState();
+const initialState: PersistedState = persisted ?? {
   parts: [...mockParts],
   inboundRecords: [...mockInboundRecords],
   outboundRecords: [...mockOutboundRecords],
   returnRecords: [...mockReturnRecords],
-  exceptionRecords: [...mockExceptionRecords],
+  exceptionRecords: [...mockExceptionRecords]
+};
+
+export const usePartStore = create<PartState>((set, get) => ({
+  ...initialState,
 
   addPart: (data) => {
     const { status, remark } = evaluatePartStatus(
@@ -96,7 +150,10 @@ export const usePartStore = create<PartState>((set, get) => ({
       createTime: now,
       updateTime: now
     };
-    set((state) => ({ parts: [newPart, ...state.parts] }));
+    set((state) => {
+      const next = { parts: [newPart, ...state.parts] };
+      return next;
+    });
     return { part: newPart, status, remark };
   },
 
@@ -124,11 +181,18 @@ export const usePartStore = create<PartState>((set, get) => ({
       serialNumber: part.serialNumber,
       batchNumber: part.batchNumber,
       partName: part.partName,
+      workOrder: data.workOrder,
+      aircraftReg: data.aircraftReg,
       remainingLife: part.remainingLife,
       lifeUnit: part.lifeUnit,
-      ...data,
+      certificateNumber: part.certificateNumber,
+      storageExpiryDate: part.storageExpiryDate,
+      receiver: data.receiver,
+      cabinet: data.cabinet,
+      withCertificate: data.withCertificate,
       operator: data.operator,
-      createTime: now
+      createTime: now,
+      returned: false
     };
 
     set((state) => ({
@@ -139,35 +203,52 @@ export const usePartStore = create<PartState>((set, get) => ({
   },
 
   recordReturn: (data) => {
-    const { parts } = get();
-    const part = parts.find((p) => p.id === data.partId);
-    if (!part) return;
+    const { outboundRecords } = get();
+    const ob = outboundRecords.find(
+      (r) => r.id === data.outboundRecordId && !r.returned
+    );
+    if (!ob) return false;
 
     const now = dayjs().format('YYYY-MM-DD HH:mm:ss');
-    const record: ReturnRecord = {
+
+    const returnRecord: ReturnRecord = {
       id: generateId('rt'),
-      partId: part.id,
-      partNumber: part.partNumber,
-      serialNumber: part.serialNumber,
-      batchNumber: part.batchNumber,
-      partName: part.partName,
+      outboundRecordId: ob.id,
+      partNumber: ob.partNumber,
+      serialNumber: ob.serialNumber,
+      batchNumber: ob.batchNumber,
+      partName: ob.partName,
       reason: data.reason,
       remark: data.remark,
       operator: data.operator,
       createTime: now
     };
 
-    const updatedPart: LifePart = {
-      ...part,
+    const returnedPart: LifePart = {
+      id: generateId('part'),
+      partNumber: ob.partNumber,
+      serialNumber: ob.serialNumber,
+      batchNumber: ob.batchNumber,
+      partName: ob.partName,
+      remainingLife: ob.remainingLife,
+      lifeUnit: ob.lifeUnit,
+      certificateNumber: ob.certificateNumber,
+      storageExpiryDate: ob.storageExpiryDate,
       status: 'pending',
-      statusRemark: '退库待处理',
+      statusRemark: `退库待处理（${RETURN_REASON_LABEL[data.reason]}）`,
+      location: ob.cabinet,
+      createTime: now,
       updateTime: now
     };
 
     set((state) => ({
-      returnRecords: [record, ...state.returnRecords],
-      parts: state.parts.map((p) => (p.id === part.id ? updatedPart : p))
+      returnRecords: [returnRecord, ...state.returnRecords],
+      outboundRecords: state.outboundRecords.map((r) =>
+        r.id === ob.id ? { ...r, returned: true, returnTime: now } : r
+      ),
+      parts: [returnedPart, ...state.parts]
     }));
+    return true;
   },
 
   handleException: (id: string, handler: string, remark: string) => {
@@ -181,11 +262,35 @@ export const usePartStore = create<PartState>((set, get) => ({
     }));
   },
 
+  resetData: () => {
+    set({
+      parts: [...mockParts],
+      inboundRecords: [...mockInboundRecords],
+      outboundRecords: [...mockOutboundRecords],
+      returnRecords: [...mockReturnRecords],
+      exceptionRecords: [...mockExceptionRecords]
+    });
+  },
+
   getPartById: (id: string) => {
     return get().parts.find((p) => p.id === id);
   },
 
   getAvailableParts: () => {
     return get().parts.filter((p) => p.status === 'available');
+  },
+
+  getReturnableOutbounds: () => {
+    return get().outboundRecords.filter((r) => !r.returned);
   }
 }));
+
+usePartStore.subscribe((state) => {
+  saveState({
+    parts: state.parts,
+    inboundRecords: state.inboundRecords,
+    outboundRecords: state.outboundRecords,
+    returnRecords: state.returnRecords,
+    exceptionRecords: state.exceptionRecords
+  });
+});

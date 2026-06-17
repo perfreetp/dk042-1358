@@ -294,3 +294,26 @@
   margin-bottom: $spacing-sm;
   padding-left: $spacing-xs;
 }
+
+.usageHint {
+  display: block;
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  margin-top: $spacing-xs;
+  padding-left: $spacing-xs;
+  line-height: 1.4;
+}
+
+.lifeCheckHint {
+  margin-top: $spacing-md;
+  padding: $spacing-md $spacing-lg;
+  background-color: $color-bg-page;
+  border-radius: $radius-md;
+  border: 2rpx dashed $color-border;
+}
+
+.lifeCheckHintText {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  line-height: 1.5;
+}

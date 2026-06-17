@@ -76,13 +76,19 @@ const OutboundPage: React.FC = () => {
       (refMode === 'workOrder' && workOrder.trim() !== '') ||
       (refMode === 'aircraftReg' && aircraftReg.trim() !== '');
 
+    const planned = parseFloat(plannedUsage);
+    const plannedValid = !isNaN(planned) && planned > 0;
+
     return (
       selectedPartId !== null &&
       refValid &&
+      plannedValid &&
+      lifeCheck !== null &&
+      lifeCheck.level !== 'fail' &&
       receiver.trim() !== '' &&
       cabinet.trim() !== ''
     );
-  }, [selectedPartId, refMode, workOrder, aircraftReg, receiver, cabinet]);
+  }, [selectedPartId, refMode, workOrder, aircraftReg, plannedUsage, lifeCheck, receiver, cabinet]);
 
   const handleSelectPart = (part: LifePart) => {
     setSelectedPartId(part.id);
@@ -94,21 +100,49 @@ const OutboundPage: React.FC = () => {
   };
 
   const handleSubmit = () => {
-    if (!canSubmit || !selectedPart) {
-      Taro.showToast({ title: '请填写完整信息', icon: 'none' });
+    if (!selectedPart) {
+      Taro.showToast({ title: '请先选择航材', icon: 'none' });
       return;
     }
 
-    if (lifeCheck?.level === 'fail') {
-      Taro.showToast({ title: '寿命不足，不可发料', icon: 'none' });
+    const planned = parseFloat(plannedUsage);
+    if (isNaN(planned) || planned <= 0) {
+      Taro.showToast({ title: '请填写计划使用量', icon: 'none' });
       return;
     }
 
-    if (lifeCheck?.level === 'warning') {
+    if (!lifeCheck) {
+      Taro.showToast({ title: '请完成寿命校验', icon: 'none' });
+      return;
+    }
+
+    if (lifeCheck.level === 'fail') {
       Taro.showModal({
-        title: '确认发料？',
-        content: `该航材寿命余量不足\n${lifeCheck.desc}\n\n是否仍要发放？`,
-        confirmText: '确认发料',
+        title: '不可发料',
+        content: `${lifeCheck.title}\n${lifeCheck.desc}\n\n剩余寿命无法满足计划使用窗口，禁止发放。`,
+        showCancel: false,
+        confirmText: '我知道了'
+      });
+      return;
+    }
+
+    const refValid =
+      (refMode === 'workOrder' && workOrder.trim() !== '') ||
+      (refMode === 'aircraftReg' && aircraftReg.trim() !== '');
+    if (!refValid) {
+      Taro.showToast({ title: '请填写关联信息', icon: 'none' });
+      return;
+    }
+    if (receiver.trim() === '' || cabinet.trim() === '') {
+      Taro.showToast({ title: '请填写发料确认信息', icon: 'none' });
+      return;
+    }
+
+    if (lifeCheck.level === 'warning') {
+      Taro.showModal({
+        title: '寿命余量不足确认',
+        content: `${lifeCheck.title}\n${lifeCheck.desc}\n\n该航材寿命余量低于安全阈值，需确认后再放行。是否仍要发放？`,
+        confirmText: '确认放行',
         cancelText: '取消',
         success: (res) => {
           if (res.confirm) {
@@ -241,7 +275,9 @@ const OutboundPage: React.FC = () => {
 
           {selectedPart && (
             <View className={styles.inputRow} style={{ marginTop: 24 }}>
-              <Text className={styles.inputLabel}>计划使用量（选填）</Text>
+              <Text className={classnames(styles.inputLabel, styles.required)}>
+                计划使用量
+              </Text>
               <View
                 className={classnames(
                   styles.inputWrapper,
@@ -252,13 +288,24 @@ const OutboundPage: React.FC = () => {
                   className={styles.inputField}
                   type="digit"
                   value={plannedUsage}
-                  placeholder={`预计使用 ${LIFE_UNIT_LABEL[selectedPart.lifeUnit]} 数`}
+                  placeholder={`预计使用 ${LIFE_UNIT_LABEL[selectedPart.lifeUnit]} 数（必填）`}
                   placeholderClass={styles.placeholder}
                   onInput={(e) => setPlannedUsage(e.detail.value)}
                   onFocus={() => setFocusedField('plannedUsage')}
                   onBlur={() => setFocusedField(null)}
                 />
               </View>
+              <Text className={styles.usageHint}>
+                填写后将自动校验剩余寿命是否满足计划使用窗口
+              </Text>
+            </View>
+          )}
+
+          {selectedPart && !plannedUsage && (
+            <View className={styles.lifeCheckHint}>
+              <Text className={styles.lifeCheckHintText}>
+                ⏳ 请填写计划使用量以进行寿命校验，未校验前不可发料
+              </Text>
             </View>
           )}
 

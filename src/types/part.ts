@@ -49,16 +49,20 @@ export interface OutboundRecord {
   aircraftReg?: string;
   remainingLife: number;
   lifeUnit: LifeUnit;
+  certificateNumber: string;
+  storageExpiryDate: string;
   receiver: string;
   cabinet: string;
   withCertificate: boolean;
   operator: string;
   createTime: string;
+  returned?: boolean;
+  returnTime?: string;
 }
 
 export interface ReturnRecord {
   id: string;
-  partId: string;
+  outboundRecordId: string;
   partNumber: string;
   serialNumber: string;
   batchNumber: string;

@@ -175,26 +175,49 @@ export const mockOutboundRecords: OutboundRecord[] = [
     aircraftReg: 'B-1234',
     remainingLife: 320,
     lifeUnit: 'hour',
+    certificateNumber: 'EASA-2024-01234',
+    storageExpiryDate: dayjs().add(180, 'day').format('YYYY-MM-DD'),
     receiver: '王师傅',
     cabinet: 'A-03-12',
     withCertificate: true,
     operator: '张工',
-    createTime: dayjs().subtract(2, 'day').format('YYYY-MM-DD HH:mm:ss')
+    createTime: dayjs().subtract(2, 'day').format('YYYY-MM-DD HH:mm:ss'),
+    returned: false
+  },
+  {
+    id: 'ob_002',
+    partId: 'part_old_002',
+    partNumber: 'B737NG-HYD-01',
+    serialNumber: 'SN-2023-09876',
+    batchNumber: 'BATCH-2023-112',
+    partName: '液压泵',
+    workOrder: 'WO-2024-0420-008',
+    aircraftReg: 'B-5678',
+    remainingLife: 8,
+    lifeUnit: 'hour',
+    certificateNumber: 'CAAC-2023-09999',
+    storageExpiryDate: dayjs().add(60, 'day').format('YYYY-MM-DD'),
+    receiver: '刘师傅',
+    cabinet: 'B-01-05',
+    withCertificate: true,
+    operator: '李工',
+    createTime: dayjs().subtract(1, 'day').format('YYYY-MM-DD HH:mm:ss'),
+    returned: false
   }
 ];
 
 export const mockReturnRecords: ReturnRecord[] = [
   {
     id: 'rt_001',
-    partId: 'part_003',
-    partNumber: 'B737NG-HYD-01',
-    serialNumber: 'SN-2023-09876',
-    batchNumber: 'BATCH-2023-112',
-    partName: '液压泵',
+    outboundRecordId: 'ob_old_001',
+    partNumber: 'A320-AVIO-020',
+    serialNumber: 'SN-2023-04444',
+    batchNumber: 'BATCH-2023-060',
+    partName: '航向传感器',
     reason: 'fault',
-    remark: '压力异常拆下',
+    remark: '输出信号漂移拆下',
     operator: '李工',
-    createTime: dayjs().subtract(1, 'day').format('YYYY-MM-DD HH:mm:ss')
+    createTime: dayjs().subtract(3, 'day').format('YYYY-MM-DD HH:mm:ss')
   }
 ];
 

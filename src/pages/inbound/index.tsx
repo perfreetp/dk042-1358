@@ -7,6 +7,7 @@ import ScanInput from '@/components/ScanInput';
 import StatusBadge from '@/components/StatusBadge';
 import { usePartStore } from '@/store/usePartStore';
 import { evaluatePartStatus, formatDate } from '@/utils/status';
+import { parsePackagingLabel } from '@/utils/labelParser';
 import type { LifeUnit, PartStatus } from '@/types/part';
 import { LIFE_UNIT_LABEL } from '@/types/part';
 import styles from './index.module.scss';
@@ -24,6 +25,7 @@ const InboundPage: React.FC = () => {
   const [storageExpiryDate, setStorageExpiryDate] = useState('');
 
   const [focusedField, setFocusedField] = useState<string | null>(null);
+  const [labelParsed, setLabelParsed] = useState(false);
 
   const evaluation = useMemo(() => {
     const life = parseFloat(remainingLife);
@@ -43,6 +45,59 @@ const InboundPage: React.FC = () => {
       storageExpiryDate !== ''
     );
   }, [partNumber, serialNumber, batchNumber, remainingLife, certificateNumber, storageExpiryDate]);
+
+  const applyParsedLabel = (parsed: ReturnType<typeof parsePackagingLabel>) => {
+    let changed = false;
+    if (parsed.partNumber) {
+      setPartNumber(parsed.partNumber);
+      changed = true;
+    }
+    if (parsed.serialNumber) {
+      setSerialNumber(parsed.serialNumber);
+      changed = true;
+    }
+    if (parsed.batchNumber) {
+      setBatchNumber(parsed.batchNumber);
+      changed = true;
+    }
+    if (parsed.partName) {
+      setPartName(parsed.partName);
+      changed = true;
+    }
+    setLabelParsed(changed);
+    return changed;
+  };
+
+  const handleScanLabel = async () => {
+    try {
+      const res = await Taro.scanCode({
+        onlyFromCamera: false,
+        scanType: ['barCode', 'qrCode']
+      });
+      if (!res.result) {
+        Taro.showToast({ title: '未识别到内容', icon: 'none' });
+        return;
+      }
+      const parsed = parsePackagingLabel(res.result);
+      const ok = applyParsedLabel(parsed);
+      if (ok) {
+        Taro.showToast({
+          title: '已自动填充标签',
+          icon: 'success'
+        });
+      } else {
+        Taro.showModal({
+          title: '标签格式未识别',
+          content: `扫码内容：\n${res.result}\n\n未能解析出件号/序号/批次号，请手动补录。`,
+          showCancel: false,
+          confirmText: '去补录'
+        });
+      }
+    } catch (error) {
+      console.error('[Inbound] 包装标签扫码失败:', error);
+      Taro.showToast({ title: '扫码失败，请手动录入', icon: 'none' });
+    }
+  };
 
   const handleDateSelect = () => {
     const defaultDate = storageExpiryDate || dayjs().add(90, 'day').format('YYYY-MM-DD');
@@ -155,6 +210,21 @@ const InboundPage: React.FC = () => {
 
   return (
     <View className={styles.container}>
+      <View className={styles.labelScanCard} onClick={handleScanLabel}>
+        <View className={styles.labelScanIcon}>
+          <Text>⌖</Text>
+        </View>
+        <View className={styles.labelScanContent}>
+          <Text className={styles.labelScanTitle}>扫描包装标签</Text>
+          <Text className={styles.labelScanDesc}>
+            {labelParsed
+              ? '已自动填充件号/序号/批次号，请补全寿命信息'
+              : '扫码自动识别件号、序号、批次号，扫不出可手动补录'}
+          </Text>
+        </View>
+        <Text className={styles.labelScanArrow}>›</Text>
+      </View>
+
       <View className={styles.section}>
         <Text className={styles.sectionTitle}>基础信息</Text>
         <View className={styles.formCard}>
